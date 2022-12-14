@@ -10,7 +10,7 @@
         <button @click="pauseTimer(timer.id)">Pause Timer</button>
         <button @click="resetTimer(timer.id)">Reset Timer</button>
         <button @click="removeTimer(index)">Remove Timer</button>
-        <button @click="toggleCountDirection">Count Up/Down</button>
+        <button @click="toggleCountDirection(timer.id)">Count Up/Down</button>
       </div>
     </div>
     <button @click="addTimer">Add Timer</button>
@@ -30,16 +30,17 @@ export default {
           interval: null,
           isRunning: false,
           isCountingUp: true,
+          countDirection: true,
         },
       ],
       nextTimerId: 2,
-      countDirection: true,
     };
   },
   methods: {
-    toggleCountDirection() {
-      this.countDirection = !this.countDirection;
-      console.log(this.countDirection);
+    toggleCountDirection(id) {
+      const timer = this.timers.find((timer) => timer.id === id);
+      timer.countDirection = !timer.countDirection;
+      console.log(timer.countDirection);
     },
     addTimer() {
       this.timers.push({
@@ -51,6 +52,7 @@ export default {
         isRunning: false,
         isCountingUp: true,
       });
+      this.toggleCountDirection(this.nextTimerId);
       this.nextTimerId++;
     },
     removeTimer(index) {
@@ -62,9 +64,17 @@ export default {
       if (timer.isRunning) return;
 
       timer.startTime = Date.now();
-      timer.interval = setInterval(() => {
-        timer.time += timer.isCountingUp ? 1 : -1;
-      }, 1000);
+      if (timer.countDirection) {
+        timer.interval = setInterval(() => {
+          timer.time += timer.isCountingUp ? 1 : -1;
+        }, 1000);
+      } else {
+        timer.interval = setInterval(() => {
+          timer.time -= timer.isCountingUp ? 1 : -1;
+          if (timer.time <= 0) return this.resetTimer(id);
+        }, 1000);
+      }
+
       timer.isRunning = true;
     },
     pauseTimer(id) {
